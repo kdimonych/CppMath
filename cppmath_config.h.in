@@ -1,0 +1,3 @@
+// the configured options and settings for Tutorial
+#define CPPMATH_VERSION_MAJOR @CppMath_VERSION_MAJOR@
+#define CPPMATH_VERSION_MINOR @CppMath_VERSION_MINOR@
