@@ -34,7 +34,8 @@
 
 void testBasic()
 {
-
+    
+    //ASSERT_THROW( condition )
 }
 
 int main(int, char**)
