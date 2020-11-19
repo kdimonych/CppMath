@@ -13,9 +13,10 @@
 #include <cstddef>
 #include <type_traits>
 #include <iterator>
+#include <cassert>
 
 namespace cppmath {
-
+namespace matrix{
 struct MatrixPoint{
     std::size_t row = 0;
     std::size_t column = 0;
@@ -25,30 +26,36 @@ class IMatrix{
 public:
     virtual ~IMatrix() = default;
     virtual std::size_t size() const = 0;
-    virtual std::size_t rows() const {return size()/columns();}
+    virtual std::size_t rows() const  = 0;
     virtual std::size_t columns() const = 0;
-    constexpr inline bool isSquareMatrix() const {return columns() == rows();}
-    constexpr inline bool isColumnVector() const {return columns() == 1;}
-    constexpr inline bool isRowVector() const {return rows() == 1;}
+
+    constexpr inline bool isSquareMatrix() const {return columns() == rows() && columns() != 0; }
+    constexpr inline bool isColumnVector() const {return columns() == 1 && rows() > 0;}
+    constexpr inline bool isRowVector() const {return rows() == 1 && columns() > 0;}
     constexpr inline bool isVector() const {return isColumnVector() || isRowVector();}
+    constexpr inline bool isEmpty() const {return size() == 0;}
 };
 
-class MatrixBaseIterationStrategy{
+class BaseIterationStrategy{
 public:
-    MatrixBaseIterationStrategy() = default;
-    MatrixBaseIterationStrategy(const MatrixBaseIterationStrategy&) = default;
-    MatrixBaseIterationStrategy(MatrixBaseIterationStrategy&&) = default;
+    BaseIterationStrategy() = default;
+    BaseIterationStrategy(const BaseIterationStrategy&) = default;
+    BaseIterationStrategy(BaseIterationStrategy&&) = default;
     
-    MatrixBaseIterationStrategy& operator = (const MatrixBaseIterationStrategy& other) = default;
-    MatrixBaseIterationStrategy& operator = (MatrixBaseIterationStrategy&& other) = default;
+    BaseIterationStrategy& operator = (const BaseIterationStrategy& other) = default;
+    BaseIterationStrategy& operator = (BaseIterationStrategy&& other) = default;
     
     inline const IMatrix* matrix() const {return m_matrix;};
     
     template<class MatrixT>
-    constexpr inline MatrixT* matrix() const {return reinterpret_cast<MatrixT*>(const_cast<IMatrix*>(m_matrix));};
+    constexpr inline MatrixT* matrix() const {
+        return reinterpret_cast<MatrixT*>(const_cast<IMatrix*>(m_matrix));
+    };
+    
+    constexpr inline bool isValid() const { return m_matrix == nullptr; }
     
 protected:
-    MatrixBaseIterationStrategy(const IMatrix* matrix): m_matrix(matrix) {};
+    BaseIterationStrategy(const IMatrix* matrix): m_matrix(matrix) {};
     const IMatrix* m_matrix = nullptr;
 };
 
@@ -152,6 +159,11 @@ public:
         return result;
     }
     
+    inline difference_type operator - (const MatrixBaseIterator& other) const
+    {
+        return m_strategy.diff(other.m_strategy);
+    }
+    
     inline bool operator == (const MatrixBaseIterator& other) const{return m_strategy.diff(other.m_strategy) == 0;}
     inline bool operator < (const MatrixBaseIterator& other) const {return m_strategy.diff(other.m_strategy) < 0;}
     inline bool operator > (const MatrixBaseIterator& other) const{return m_strategy.diff(other.m_strategy) > 0;}
@@ -161,6 +173,10 @@ public:
     
     pointer operator ->() const {return &data();}
     reference operator *() const {return data();}
+    constexpr inline bool isValid() const { return m_strategy.isValid(); }
+    
+    inline size_t row() const { return m_strategy.row(); }
+    inline size_t column() const { return m_strategy.column(); }
     
 protected:
     
@@ -180,6 +196,7 @@ protected:
     StrategyT m_strategy;
 };
 
-}//namespace cppmath
+} //namespace matrix
+} //namespace cppmath
 
 #endif /* cppmath_matrix_base_hpp */

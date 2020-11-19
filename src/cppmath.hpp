@@ -12,8 +12,11 @@
 #include <stdio.h>
 #include "cppmath_matrix.hpp"
 
-namespace ccpmath{
+namespace cppmath{
 
-} //namespace ccpmath
+int version_major();
+int version_minor();
+
+} //namespace cppmath
 
 #endif /* emath_hpp */

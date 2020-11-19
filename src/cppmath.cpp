@@ -9,6 +9,16 @@
 #include "cppmath.hpp"
 #include "cppmath_config.h"
 
-namespace ccpmath{
+namespace cppmath{
+
+int version_major()
+{
+    return CPPMATH_VERSION_MAJOR;
+}
+
+int version_minor()
+{
+    return CPPMATH_VERSION_MINOR;
+}
 
 } //namespace ccpmath
