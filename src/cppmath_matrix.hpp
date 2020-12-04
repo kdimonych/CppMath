@@ -25,58 +25,58 @@
 
 namespace cppmath {
 namespace matrix{
-template <typename difference_type = std::ptrdiff_t>
-class RowIterationStrategy final: public BaseIterationStrategy
+    
+template <class MatrixT>
+class RowIterator final: public MatrixBaseIterator<MatrixT, RowIterator<MatrixT>>
 {
     std::size_t m_index = 0;
     
 public:
-    RowIterationStrategy() = default;
-    RowIterationStrategy(const RowIterationStrategy&) = default;
-    RowIterationStrategy(RowIterationStrategy&&) = default;
+    using BaseT = MatrixBaseIterator<MatrixT, RowIterator<MatrixT>>;
+    using MatrixBaseIterator<MatrixT, RowIterator<MatrixT>>::MatrixBaseIterator;
     
-    RowIterationStrategy& operator = (const RowIterationStrategy& other) = default;
-    RowIterationStrategy& operator = (RowIterationStrategy&& other) = default;
-    
-    constexpr static inline RowIterationStrategy begin(const IMatrix* matrix){
+    constexpr static inline RowIterator begin(MatrixT* matrix){
         assert(matrix);
-        return RowIterationStrategy(matrix, 0);
+        return RowIterator(matrix, 0);
     };
     
-    constexpr static inline RowIterationStrategy end(const IMatrix* matrix){
+    constexpr static inline RowIterator end(MatrixT* matrix){
         assert(matrix);
-        return RowIterationStrategy(matrix, matrix->size());
+        return RowIterator(matrix, matrix->size());
     };
     
-    constexpr static inline RowIterationStrategy beginAt(const IMatrix* matrix, std::size_t row, std::size_t column){
+    constexpr static inline RowIterator beginAt(MatrixT* matrix, std::size_t row, std::size_t column){
         assert(matrix);
-        return RowIterationStrategy(matrix, row * matrix->columns() + column);
+        return RowIterator(matrix, row * matrix->columns() + column);
     };
     
-    inline void dec(difference_type index = 1) {m_index -= index;};
-    inline void inc(difference_type index = 1) {m_index += index;};
     inline std::size_t index() const noexcept {return m_index;};
     inline std::size_t column() const {
-        assert(m_matrix);
-        return m_matrix->columns() != 0 ? m_index % m_matrix->columns() : 0;
+        assert(this->m_matrix);
+        return this->m_matrix->columns() != 0 ? m_index % this->m_matrix->columns() : 0;
     }
     inline std::size_t row() const {
-        assert(m_matrix);
-        return m_matrix->columns() != 0 ? m_index / m_matrix->columns() : 0;
+        assert(this->m_matrix);
+        return this->m_matrix->columns() != 0 ? m_index / this->m_matrix->columns() : 0;
     }
-    inline difference_type diff(const RowIterationStrategy& other) const {return m_index - other.m_index; }
+    
     
 protected:
-    RowIterationStrategy(const IMatrix* matrix, std::size_t index): BaseIterationStrategy(matrix), m_index(index){}
+    friend BaseT;
+    inline void dec(typename BaseT::difference_type index) {m_index -= index;};
+    inline void inc(typename BaseT::difference_type index) {m_index += index;};
+    inline typename BaseT::difference_type diff(const RowIterator& other) const {return m_index - other.m_index; }
+    
+    RowIterator(MatrixT* matrix, std::size_t index): BaseT(matrix), m_index(index){}
 };
 
 template <typename T>
-class Matrix: public IMatrix{
+class Matrix {
 public:
     typedef T           value_type;
     
-    using Iterator = MatrixBaseIterator<Matrix, RowIterationStrategy>;
-    using ConstIterator = MatrixBaseIterator<const Matrix, RowIterationStrategy>;
+    using Iterator = RowIterator<Matrix>;
+    using ConstIterator = RowIterator<const Matrix>;
     
     Matrix() = default;
     Matrix(const Matrix&) = default;
@@ -143,47 +143,21 @@ public:
     }
     
     constexpr inline Iterator begin(){ return Iterator::begin(this); }
-    constexpr inline Iterator beginAt(const MatrixPoint& point){ return Iterator::beginAt(this, point); }
+    constexpr inline Iterator beginAt(const MatrixPoint& point){ return Iterator::beginAt(this, point.row, point.column); }
     constexpr inline Iterator end(){ return Iterator::end(this); }
     constexpr inline ConstIterator begin() const { return ConstIterator::begin(this); }
-    constexpr inline ConstIterator beginAt(const MatrixPoint& point) const { return ConstIterator::beginAt(this, point); }
+    constexpr inline ConstIterator beginAt(const MatrixPoint& point) const { return ConstIterator::beginAt(this, point.row, point.column); }
     constexpr inline ConstIterator end() const { return ConstIterator::end(this); }
-    
-    template <template <typename _DifferenceType> class IterationStrategy>
-    constexpr inline MatrixBaseIterator<Matrix, IterationStrategy>
-    begin(){
-        return MatrixBaseIterator<Matrix, IterationStrategy>::begin(this);
-    }
-    template <template <typename _DifferenceType> class IterationStrategy>
-    constexpr inline MatrixBaseIterator<Matrix, IterationStrategy>
-    beginAt(const MatrixPoint& point){
-        return MatrixBaseIterator<Matrix, IterationStrategy>::beginAt(this, point.row, point.column);
-    }
-    template <template <typename _DifferenceType> class IterationStrategy>
-    constexpr inline MatrixBaseIterator<Matrix, IterationStrategy>
-    end(){
-        return MatrixBaseIterator<Matrix, IterationStrategy>::end(this);
-    }
-    
-    template <template <typename _DifferenceType> class IterationStrategy>
-    constexpr inline MatrixBaseIterator<const Matrix, IterationStrategy>
-    begin() const {
-        return MatrixBaseIterator<const Matrix, IterationStrategy>::begin(this);
-    }
-    template <template <typename _DifferenceType> class IterationStrategy>
-    constexpr inline MatrixBaseIterator<const Matrix, IterationStrategy>
-    beginAt(const MatrixPoint& point) const {
-        return MatrixBaseIterator<const Matrix, IterationStrategy>::beginAt(this, point.row, point.column);
-    }
-    template <template <typename _DifferenceType> class IterationStrategy>
-    constexpr inline MatrixBaseIterator<const Matrix, IterationStrategy>
-    end() const {
-        return MatrixBaseIterator<const Matrix, IterationStrategy>::end(this);
-    }
     
     std::size_t size()  const noexcept {return m_data.size();}
     std::size_t rows() const noexcept {return m_rows;}
     std::size_t columns() const noexcept {return m_columns;}
+    
+    constexpr inline bool isSquareMatrix() const {return columns() == rows() && columns() != 0; }
+    constexpr inline bool isColumnVector() const {return columns() == 1 && rows() > 0;}
+    constexpr inline bool isRowVector() const {return rows() == 1 && columns() > 0;}
+    constexpr inline bool isVector() const {return isColumnVector() || isRowVector();}
+    constexpr inline bool isEmpty() const {return size() == 0;}
     
 private:
     std::vector<value_type> m_data;

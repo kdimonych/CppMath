@@ -14,72 +14,16 @@
 #include <type_traits>
 #include <iterator>
 #include <cassert>
+#include <utility>
 
 namespace cppmath {
 namespace matrix{
+
 struct MatrixPoint{
     std::size_t row = 0;
     std::size_t column = 0;
 };
-
-template<class Implementation>
-class MatrixBase{
-public:
-    //virtual MatrixBase() = default;
-    inline constexpr std::size_t size() const noexcept {
-        return static_cast<Implementation*>(this)->size();
-    };
-    inline constexpr std::size_t rows() const noexcept{
-        return static_cast<Implementation*>(this)->rows();
-    };
-    inline constexpr std::size_t columns() const noexcept{
-        return static_cast<Implementation*>(this)->columns();
-    };
     
-    constexpr inline bool isSquareMatrix() const {return columns() == rows() && columns() != 0; }
-    constexpr inline bool isColumnVector() const {return columns() == 1 && rows() > 0;}
-    constexpr inline bool isRowVector() const {return rows() == 1 && columns() > 0;}
-    constexpr inline bool isVector() const {return isColumnVector() || isRowVector();}
-    constexpr inline bool isEmpty() const {return size() == 0;}
-};
-    
-class IMatrix{
-public:
-    virtual ~IMatrix() = default;
-    virtual std::size_t size() const = 0;
-    virtual std::size_t rows() const  = 0;
-    virtual std::size_t columns() const = 0;
-
-    constexpr inline bool isSquareMatrix() const {return columns() == rows() && columns() != 0; }
-    constexpr inline bool isColumnVector() const {return columns() == 1 && rows() > 0;}
-    constexpr inline bool isRowVector() const {return rows() == 1 && columns() > 0;}
-    constexpr inline bool isVector() const {return isColumnVector() || isRowVector();}
-    constexpr inline bool isEmpty() const {return size() == 0;}
-};
-
-class BaseIterationStrategy{
-public:
-    BaseIterationStrategy() = default;
-    BaseIterationStrategy(const BaseIterationStrategy&) = default;
-    BaseIterationStrategy(BaseIterationStrategy&&) = default;
-    
-    BaseIterationStrategy& operator = (const BaseIterationStrategy& other) = default;
-    BaseIterationStrategy& operator = (BaseIterationStrategy&& other) = default;
-    
-    inline const IMatrix* matrix() const {return m_matrix;};
-    
-    template<class MatrixT>
-    constexpr inline MatrixT* matrix() const {
-        return reinterpret_cast<MatrixT*>(const_cast<IMatrix*>(m_matrix));
-    };
-    
-    constexpr inline bool isValid() const { return m_matrix == nullptr; }
-    
-protected:
-    BaseIterationStrategy(const IMatrix* matrix): m_matrix(matrix) {};
-    const IMatrix* m_matrix = nullptr;
-};
-
 template <class MatrixT> struct MatrixTrait {
     typedef typename std::decay<typename MatrixT::value_type>::type value_type;
 };
@@ -88,7 +32,7 @@ template <class MatrixT> struct MatrixTrait<const MatrixT> {
     typedef const typename std::decay<typename MatrixT::value_type>::type value_type;
 };
 
-template <class MatrixT, template <typename DifferenceType> class Strategy>
+template <class MatrixT, class Derived>
 class MatrixBaseIterator{
 public:
     
@@ -98,126 +42,119 @@ public:
     typedef std::ptrdiff_t                                              difference_type;
     typedef std::random_access_iterator_tag                             iterator_category;
     
-    using StrategyT = Strategy<difference_type>;
-    
     MatrixBaseIterator() = default;
     MatrixBaseIterator(const MatrixBaseIterator&) =  default;
     MatrixBaseIterator(MatrixBaseIterator&&) =  default;
     
-    template <class _MatrixT>
-    constexpr MatrixBaseIterator(const MatrixBaseIterator<_MatrixT, Strategy>& other,
-        typename std::enable_if<std::is_convertible<_MatrixT, MatrixT>::value>::type* = 0)
-    : m_strategy(other.m_strategy)
-    {}
-    
     MatrixBaseIterator& operator = (const MatrixBaseIterator& other) = default;
     MatrixBaseIterator& operator = (MatrixBaseIterator&& other) = default;
     
-//    template <class _MatrixT>
-//    MatrixBaseIterator& operator = (const MatrixBaseIterator<_MatrixT, Strategy>& other,
-//                                 typename std::enable_if<std::is_convertible<_MatrixT, MatrixT>::value>::type* = 0)
-//    : m_strategy(other.m_strategy){}
-    
-    constexpr static inline MatrixBaseIterator begin(MatrixT* matrix){
-        return MatrixBaseIterator(StrategyT::begin(matrix));
+    inline Derived& operator ++() noexcept {
+        _inc();
+        return static_cast<Derived&>(*this);
     }
     
-    constexpr static inline MatrixBaseIterator beginAt(MatrixT* matrix, std::size_t row, std::size_t column){
-        return MatrixBaseIterator(StrategyT::begin(matrix, row, column));
-    }
-    
-    constexpr static inline MatrixBaseIterator end(MatrixT* matrix){
-        return MatrixBaseIterator(StrategyT::end(matrix));
-    }
-    
-    inline MatrixBaseIterator& operator ++()
-    {
-        m_strategy.inc();
-        return *this;
-    }
-    
-    inline MatrixBaseIterator operator ++(int) {
-        MatrixBaseIterator result(*this);
-        m_strategy.inc();
+    inline Derived operator ++(int) noexcept {
+        Derived result(static_cast<const Derived&>(*this));
+        _inc();
         return result;
     }
     
-    inline MatrixBaseIterator& operator --(){
-        m_strategy.dec();
-        return *this;
+    inline Derived& operator --() noexcept {
+        _dec();
+        return static_cast<Derived&>(*this);
     }
     
-    inline MatrixBaseIterator operator --(int)
-    {
-        MatrixBaseIterator result(*this);
-        m_strategy.dec();
+    inline Derived operator --(int) noexcept {
+        Derived result(static_cast<const Derived&>(*this));
+        _dec();
         return result;
     }
     
-    MatrixBaseIterator& operator +=(difference_type di){
-        m_strategy.inc(di);
-        return *this;
+    Derived& operator +=(difference_type di) noexcept {
+        _inc(di);
+        return static_cast<Derived&>(*this);
     }
     
-    MatrixBaseIterator& operator -=(difference_type di){
-        m_strategy.dec(di);
-        return *this;
+    Derived& operator -=(difference_type di) noexcept {
+        _dec(di);
+        return static_cast<Derived&>(*this);
     }
     
-    inline MatrixBaseIterator operator - (difference_type index) const
-    {
-        MatrixBaseIterator result(*this);
+    inline Derived operator - (difference_type index) const noexcept {
+        Derived result(static_cast<const Derived&>(*this));
         result -= index;
         return result;
     }
     
-    inline MatrixBaseIterator operator + (difference_type index) const
-    {
-        MatrixBaseIterator result(*this);
+    inline Derived operator + (difference_type index) const noexcept {
+        Derived result(static_cast<const Derived&>(*this));
         result += index;
         return result;
     }
     
-    inline difference_type operator - (const MatrixBaseIterator& other) const
-    {
-        return m_strategy.diff(other.m_strategy);
+    inline difference_type operator - (const Derived& other) const noexcept {
+        return _diff(other);
     }
     
-    inline bool operator == (const MatrixBaseIterator& other) const{ return m_strategy.diff(other.m_strategy) == 0; }
-    inline bool operator < (const MatrixBaseIterator& other) const { return m_strategy.diff(other.m_strategy) < 0; }
-    inline bool operator > (const MatrixBaseIterator& other) const{ return m_strategy.diff(other.m_strategy) > 0; }
-    inline bool operator != (const MatrixBaseIterator& other) const { return !operator== (other); }
-    inline bool operator >= (const MatrixBaseIterator& other) const { return operator > (other) || operator == (other); }
-    inline bool operator <= (const MatrixBaseIterator& other) const { return operator < (other) || operator == (other); }
+    inline bool operator == (const Derived& other) const{ return _diff(other) == 0; }
+    inline bool operator < (const Derived& other) const { return _diff(other) < 0; }
+    inline bool operator > (const Derived& other) const{ return _diff(other) > 0; }
+    inline bool operator != (const Derived& other) const { return ! operator== (other); }
+    inline bool operator >= (const Derived& other) const { return operator > (other) || operator == (other); }
+    inline bool operator <= (const Derived& other) const { return operator < (other) || operator == (other); }
     
-    pointer operator ->() const {return &data();}
+    pointer operator ->() const noexcept {return &data();}
     reference operator *() const {return data();}
-    constexpr inline bool isValid() const { return m_strategy.isValid(); }
-    
-    inline size_t row() const { return m_strategy.row(); }
-    inline size_t column() const { return m_strategy.column(); }
+    constexpr inline bool isValid() const { return m_matrix != nullptr; }
     
 protected:
     
-    MatrixBaseIterator(StrategyT&& strategy)
-    : m_strategy(std::move(strategy))
+    MatrixBaseIterator(MatrixT* matrix)
+    : m_matrix(matrix)
     {}
-    
-    MatrixBaseIterator(const StrategyT& strategy)
-    : m_strategy(strategy)
-    {}
-    
-    //constexpr inline void dec(difference_type index = 1){ m_strategy.dec(index); };
-    //constexpr inline void inc(difference_type index = 1){ m_strategy.inc(index); };
+
     constexpr inline value_type& data() const {
-        assert(m_strategy.matrix() != nullptr);
-        assert(m_strategy.index() != m_strategy.matrix()->size());
+        assert(m_matrix != nullptr);
+        assert(_index() < m_matrix->size());
         
-        return (*m_strategy.template matrix<MatrixT>())[m_strategy.index()];
+        return (*m_matrix)[_index()];
     };
-    //constexpr inline difference_type diff(const MatrixBaseIterator& other) const {return m_strategy.diff(other.m_strategy); }
     
-    StrategyT m_strategy;
+    /**
+     Interface that must be implemented in derived classes:
+     
+     void inc(difference_type index) noexcept;
+     void dec(difference_type index) noexcept;
+     std::size_t index() const noexcept;
+     std::size_t column() const noexcept;
+     std::size_t row() const noexcept;
+     sdifference_type diff(const Derived& other) const noexcept;
+     */
+    inline constexpr void _inc(difference_type index = 1) noexcept {
+        return static_cast<Derived&>(*this).inc(index);
+    }
+    
+    inline constexpr void _dec(difference_type index = 1) noexcept {
+        return static_cast<Derived&>(*this).dec(index);
+    }
+    
+    inline constexpr std::size_t _index() const noexcept {
+        return static_cast<const Derived&>(*this).index();
+    }
+    
+    inline constexpr std::size_t _column() const noexcept {
+        return static_cast<const Derived&>(*this).column();
+    }
+    inline constexpr std::size_t _row() const noexcept {
+        return static_cast<const Derived&>(*this).row();
+    }
+    
+    inline constexpr difference_type _diff(const Derived& other) const noexcept {
+        return static_cast<const Derived&>(*this).diff(other);
+    }
+    
+    MatrixT* m_matrix = nullptr;
 };
 
 } //namespace matrix
