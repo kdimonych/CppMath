@@ -1,7 +1,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include "cppmath_matrix.hpp"
+#include "src/cppmath_matrix.hpp"
 
 #define ASSERT_THROW( condition )                                   \
 {                                                                   \
@@ -206,9 +206,42 @@ void testMatrixSetFunc(){
     }
 }
 
+void testMatrixInit(){
+    {
+        int i = 0;
+        Matrix<int> m(2,3, {0,1,2,3,4,5});
+        
+        ASSERT_EQUAL(m.size(), 6);
+        ASSERT_EQUAL(m.rows(), 2);
+        ASSERT_EQUAL(m.columns(), 3);
+        
+        for(i = 0; i < m.size(); ++i) {
+            ASSERT_EQUAL(m[i], i);
+        }
+    }
+    
+    {
+        int i = 0;
+        Matrix<int> m({
+            {0,1,2},
+            {5,4,3}
+        });
+        
+        ASSERT_EQUAL(m.size(), 6);
+        ASSERT_EQUAL(m.rows(), 2);
+        ASSERT_EQUAL(m.columns(), 3);
+
+        int expect[6] = {0,1,2,5,4,3};
+        for(i = 0; i < m.size(); ++i) {
+            ASSERT_EQUAL(m[i], expect[i]);
+        }
+    }
+}
+
 void testMatrix()
 {
     testEmptyMatrix();
+    testMatrixInit();
     testMatrixSetFunc();
     testMatrixResize();
     testZeroMatrix();

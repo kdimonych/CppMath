@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include "cppmath_matrix.hpp"
+#include "cppmath_functions.hpp"
 
 namespace cppmath{
 

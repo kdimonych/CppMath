@@ -18,7 +18,7 @@ configure_file(cppmath_config.h.in "${PROJECT_BINARY_DIR}/cppmath_config.h")
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# set(SOURCE_LIB cppmath cppmath_matrix cppmath_matrix_base.cpp cppmath_matrix_base.hpp)
+# set(SOURCE_LIB cppmath cppmath_matrix cppmath_matrix_base cppmath_functions)
 add_library(CppMath STATIC "${COLECTED_SRC}")
 
 # target_include_directories(CppMath PUBLIC "${PROJECT_BINARY_DIR}")

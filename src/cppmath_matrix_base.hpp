@@ -22,6 +22,27 @@ struct MatrixPoint{
     std::size_t column = 0;
 };
 
+template<class Implementation>
+class MatrixBase{
+public:
+    //virtual MatrixBase() = default;
+    inline constexpr std::size_t size() const noexcept {
+        return static_cast<Implementation*>(this)->size();
+    };
+    inline constexpr std::size_t rows() const noexcept{
+        return static_cast<Implementation*>(this)->rows();
+    };
+    inline constexpr std::size_t columns() const noexcept{
+        return static_cast<Implementation*>(this)->columns();
+    };
+    
+    constexpr inline bool isSquareMatrix() const {return columns() == rows() && columns() != 0; }
+    constexpr inline bool isColumnVector() const {return columns() == 1 && rows() > 0;}
+    constexpr inline bool isRowVector() const {return rows() == 1 && columns() > 0;}
+    constexpr inline bool isVector() const {return isColumnVector() || isRowVector();}
+    constexpr inline bool isEmpty() const {return size() == 0;}
+};
+    
 class IMatrix{
 public:
     virtual ~IMatrix() = default;
@@ -67,9 +88,7 @@ template <class MatrixT> struct MatrixTrait<const MatrixT> {
     typedef const typename std::decay<typename MatrixT::value_type>::type value_type;
 };
 
-template <
-    class MatrixT,
-    template <typename DifferenceType> class Strategy >
+template <class MatrixT, template <typename DifferenceType> class Strategy>
 class MatrixBaseIterator{
 public:
     
@@ -80,7 +99,6 @@ public:
     typedef std::random_access_iterator_tag                             iterator_category;
     
     using StrategyT = Strategy<difference_type>;
-    //template <class _MatrixT> friend class MatrixBaseIterator;
     
     MatrixBaseIterator() = default;
     MatrixBaseIterator(const MatrixBaseIterator&) =  default;
@@ -89,7 +107,8 @@ public:
     template <class _MatrixT>
     constexpr MatrixBaseIterator(const MatrixBaseIterator<_MatrixT, Strategy>& other,
         typename std::enable_if<std::is_convertible<_MatrixT, MatrixT>::value>::type* = 0)
-    : m_strategy(other.m_strategy){}
+    : m_strategy(other.m_strategy)
+    {}
     
     MatrixBaseIterator& operator = (const MatrixBaseIterator& other) = default;
     MatrixBaseIterator& operator = (MatrixBaseIterator&& other) = default;
@@ -164,12 +183,12 @@ public:
         return m_strategy.diff(other.m_strategy);
     }
     
-    inline bool operator == (const MatrixBaseIterator& other) const{return m_strategy.diff(other.m_strategy) == 0;}
-    inline bool operator < (const MatrixBaseIterator& other) const {return m_strategy.diff(other.m_strategy) < 0;}
-    inline bool operator > (const MatrixBaseIterator& other) const{return m_strategy.diff(other.m_strategy) > 0;}
-    inline bool operator != (const MatrixBaseIterator& other) const {return !operator== (other);}
-    inline bool operator >= (const MatrixBaseIterator& other) const {return operator > (other) || operator == (other);}
-    inline bool operator <= (const MatrixBaseIterator& other) const {return operator < (other) || operator == (other);}
+    inline bool operator == (const MatrixBaseIterator& other) const{ return m_strategy.diff(other.m_strategy) == 0; }
+    inline bool operator < (const MatrixBaseIterator& other) const { return m_strategy.diff(other.m_strategy) < 0; }
+    inline bool operator > (const MatrixBaseIterator& other) const{ return m_strategy.diff(other.m_strategy) > 0; }
+    inline bool operator != (const MatrixBaseIterator& other) const { return !operator== (other); }
+    inline bool operator >= (const MatrixBaseIterator& other) const { return operator > (other) || operator == (other); }
+    inline bool operator <= (const MatrixBaseIterator& other) const { return operator < (other) || operator == (other); }
     
     pointer operator ->() const {return &data();}
     reference operator *() const {return data();}
@@ -181,14 +200,19 @@ public:
 protected:
     
     MatrixBaseIterator(StrategyT&& strategy)
-    : m_strategy(std::move(strategy)){}
+    : m_strategy(std::move(strategy))
+    {}
     
     MatrixBaseIterator(const StrategyT& strategy)
-    :m_strategy(strategy){}
+    : m_strategy(strategy)
+    {}
     
     //constexpr inline void dec(difference_type index = 1){ m_strategy.dec(index); };
     //constexpr inline void inc(difference_type index = 1){ m_strategy.inc(index); };
     constexpr inline value_type& data() const {
+        assert(m_strategy.matrix() != nullptr);
+        assert(m_strategy.index() != m_strategy.matrix()->size());
+        
         return (*m_strategy.template matrix<MatrixT>())[m_strategy.index()];
     };
     //constexpr inline difference_type diff(const MatrixBaseIterator& other) const {return m_strategy.diff(other.m_strategy); }

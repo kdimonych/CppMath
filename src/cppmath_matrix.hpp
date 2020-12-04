@@ -13,14 +13,20 @@
 #include <cassert>
 #include <type_traits>
 #include <vector>
+#include <algorithm>
 #include <initializer_list>
 
 #include "cppmath_matrix_base.hpp"
+#include "cppmath_functions.hpp"
+
+/** Naming convention:
+    "Idx" or "idx" - index
+ */
 
 namespace cppmath {
 namespace matrix{
 template <typename difference_type = std::ptrdiff_t>
-class RowIterationStrategy: public BaseIterationStrategy
+class RowIterationStrategy final: public BaseIterationStrategy
 {
     std::size_t m_index = 0;
     
@@ -47,9 +53,9 @@ public:
         return RowIterationStrategy(matrix, row * matrix->columns() + column);
     };
     
-    inline void dec(difference_type index = 1){m_index -= index;};
-    inline void inc(difference_type index = 1){m_index += index;};
-    inline std::size_t index() const {return m_index;};
+    inline void dec(difference_type index = 1) {m_index -= index;};
+    inline void inc(difference_type index = 1) {m_index += index;};
+    inline std::size_t index() const noexcept {return m_index;};
     inline std::size_t column() const {
         assert(m_matrix);
         return m_matrix->columns() != 0 ? m_index % m_matrix->columns() : 0;
@@ -83,9 +89,15 @@ public:
         m_data(rows * columns, val),
         m_rows(rows),
         m_columns(columns)
-    {
-    }
+    {}
     
+    template <int R, int C>
+    constexpr Matrix(T const (& arr) [R][C]):
+        m_data(std::begin(arr[0]), std::end(arr[R - 1])),
+        m_rows(R),
+        m_columns(C)
+    {}
+
     constexpr Matrix(std::size_t rows, std::size_t columns, const std::initializer_list<T>& l, const T& val = T()):
         m_data(l),
         m_rows(rows),
@@ -169,9 +181,9 @@ public:
         return MatrixBaseIterator<const Matrix, IterationStrategy>::end(this);
     }
     
-    std::size_t size()  const override {return m_data.size();}
-    std::size_t rows() const override {return m_rows;}
-    std::size_t columns() const override {return m_columns;}
+    std::size_t size()  const noexcept {return m_data.size();}
+    std::size_t rows() const noexcept {return m_rows;}
+    std::size_t columns() const noexcept {return m_columns;}
     
 private:
     std::vector<value_type> m_data;
@@ -179,6 +191,13 @@ private:
     std::size_t m_columns = 0;
 };
 
+    
+    constexpr size_t factorial(size_t n, size_t res = 1)
+    {
+        for(;n != 0; --n) res *= n;
+        return res;
+    }
+    
 } //namespace matrix
 } //namespace cppmath
 #endif /* emath_matrix_hpp */

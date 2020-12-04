@@ -10,8 +10,8 @@ PROJECT( CppMath LANGUAGES CXX VERSION 1.0 )
 # Include directories
 ########################################################################
 INCLUDE_DIRECTORIES(
-#  ${CMAKE_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/src
+#   ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 ADD_SUBDIRECTORY( src )
