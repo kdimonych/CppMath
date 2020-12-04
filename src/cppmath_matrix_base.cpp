@@ -8,6 +8,7 @@
 
 #include "cppmath_matrix_base.hpp"
 
-namespace ccpmath{
-
-} //namespace ccpmath
+namespace cppmath{
+namespace matrix{
+} //namespace matrix
+} //namespace cppmath
