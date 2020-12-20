@@ -194,7 +194,7 @@ void testMatrixSetFunc(){
     
     const auto val = 13;
     
-    m.set(val);
+    m.assign(val);
     
     for(i = 0; i < m.size(); ++i) {
         ASSERT_EQUAL(m[i], val);
@@ -238,6 +238,307 @@ void testMatrixInit(){
     }
 }
 
+void testMatrixRemoveColumns(){
+    {
+        int i = 0;
+        Matrix<int> m({
+            {0,1,2},
+            {3,4,5},
+            {6,7,8}
+        });
+        
+        ASSERT_EQUAL(m.size(), 9);
+        ASSERT_EQUAL(m.rows(), 3);
+        ASSERT_EQUAL(m.columns(), 3);
+        
+        m.removeColumn(1);
+        
+        ASSERT_EQUAL(m.size(), 6);
+        ASSERT_EQUAL(m.rows(), 3);
+        ASSERT_EQUAL(m.columns(), 2);
+
+        Matrix<int> expect({
+            {0,2},
+            {3,5},
+            {6,8}
+        });
+        
+        for(i = 0; i < m.size(); ++i) {
+            ASSERT_EQUAL(m[i], expect[i]);
+        }
+    }
+    
+    {
+        int i = 0;
+        Matrix<int> m({
+            {0,1,2},
+            {3,4,5},
+            {6,7,8}
+        });
+        
+        ASSERT_EQUAL(m.size(), 9);
+        ASSERT_EQUAL(m.rows(), 3);
+        ASSERT_EQUAL(m.columns(), 3);
+        
+        m.removeColumn(1, 2);
+        
+        ASSERT_EQUAL(m.size(), 3);
+        ASSERT_EQUAL(m.rows(), 3);
+        ASSERT_EQUAL(m.columns(), 1);
+
+        Matrix<int> expect({
+            {0},
+            {3},
+            {6}
+        });
+        
+        for(i = 0; i < m.size(); ++i) {
+            ASSERT_EQUAL(m[i], expect[i]);
+        }
+    }
+    
+    {
+        int i = 0;
+        Matrix<int> m({
+            {0,1,2},
+            {3,4,5},
+            {6,7,8}
+        });
+        
+        ASSERT_EQUAL(m.size(), 9);
+        ASSERT_EQUAL(m.rows(), 3);
+        ASSERT_EQUAL(m.columns(), 3);
+        
+        m.removeColumn(2);
+        
+        ASSERT_EQUAL(m.size(), 6);
+        ASSERT_EQUAL(m.rows(), 3);
+        ASSERT_EQUAL(m.columns(), 2);
+
+        Matrix<int> expect({
+            {0,1},
+            {3,4},
+            {6,7}
+        });
+        
+        for(i = 0; i < m.size(); ++i) {
+            ASSERT_EQUAL(m[i], expect[i]);
+        }
+    }
+    
+    {
+        int i = 0;
+        Matrix<int> m({
+            {0,1,2},
+            {3,4,5},
+            {6,7,8}
+        });
+        
+        ASSERT_EQUAL(m.size(), 9);
+        ASSERT_EQUAL(m.rows(), 3);
+        ASSERT_EQUAL(m.columns(), 3);
+        
+        m.removeColumn(0);
+        
+        ASSERT_EQUAL(m.size(), 6);
+        ASSERT_EQUAL(m.rows(), 3);
+        ASSERT_EQUAL(m.columns(), 2);
+
+        Matrix<int> expect({
+            {1,2},
+            {4,5},
+            {7,8}
+        });
+        
+        for(i = 0; i < m.size(); ++i) {
+            ASSERT_EQUAL(m[i], expect[i]);
+        }
+    }
+    
+    {
+        int i = 0;
+        Matrix<int> m({
+            {0,1,2, 3},
+            {4,5,6, 7},
+            {8,9,10,11}
+        });
+        
+        ASSERT_EQUAL(m.size(), 12);
+        ASSERT_EQUAL(m.rows(), 3);
+        ASSERT_EQUAL(m.columns(), 4);
+        
+        m.removeColumn(1,2);
+        
+        ASSERT_EQUAL(m.size(), 6);
+        ASSERT_EQUAL(m.rows(), 3);
+        ASSERT_EQUAL(m.columns(), 2);
+
+        Matrix<int> expect({
+            {0,3},
+            {4,7},
+            {8,11}
+        });
+        
+        for(i = 0; i < m.size(); ++i) {
+            ASSERT_EQUAL(m[i], expect[i]);
+        }
+        
+        m.removeColumn(0,2);
+        
+        ASSERT_EQUAL(m.size(), 0);
+        ASSERT_EQUAL(m.rows(), 0);
+        ASSERT_EQUAL(m.columns(), 0);
+    }
+}
+
+void testMatrixRemoveRows(){
+    {
+        int i = 0;
+        Matrix<int> m({
+            {0,1,2},
+            {3,4,5},
+            {6,7,8}
+        });
+        
+        ASSERT_EQUAL(m.size(), 9);
+        ASSERT_EQUAL(m.rows(), 3);
+        ASSERT_EQUAL(m.columns(), 3);
+        
+        m.removeRow(1);
+        
+        ASSERT_EQUAL(m.size(), 6);
+        ASSERT_EQUAL(m.rows(), 2);
+        ASSERT_EQUAL(m.columns(), 3);
+        
+        Matrix<int> expect({
+            {0,1,2},
+            {6,7,8}
+        });
+        
+        for(i = 0; i < m.size(); ++i) {
+            ASSERT_EQUAL(m[i], expect[i]);
+        }
+    }
+    
+    {
+        int i = 0;
+        Matrix<int> m({
+            {0,1,2},
+            {3,4,5},
+            {6,7,8}
+        });
+        
+        ASSERT_EQUAL(m.size(), 9);
+        ASSERT_EQUAL(m.rows(), 3);
+        ASSERT_EQUAL(m.columns(), 3);
+        
+        m.removeRow(1, 2);
+        
+        ASSERT_EQUAL(m.size(), 3);
+        ASSERT_EQUAL(m.rows(), 1);
+        ASSERT_EQUAL(m.columns(), 3);
+        
+        Matrix<int> expect({
+            {0,1,2}
+        });
+        
+        for(i = 0; i < m.size(); ++i) {
+            ASSERT_EQUAL(m[i], expect[i]);
+        }
+    }
+    
+    {
+        int i = 0;
+        Matrix<int> m({
+            {0,1,2},
+            {3,4,5},
+            {6,7,8}
+        });
+        
+        ASSERT_EQUAL(m.size(), 9);
+        ASSERT_EQUAL(m.rows(), 3);
+        ASSERT_EQUAL(m.columns(), 3);
+        
+        m.removeRow(2);
+        
+        ASSERT_EQUAL(m.size(), 6);
+        ASSERT_EQUAL(m.rows(), 2);
+        ASSERT_EQUAL(m.columns(), 3);
+        
+        Matrix<int> expect({
+            {0,1,2},
+            {3,4,5}
+        });
+        
+        for(i = 0; i < m.size(); ++i) {
+            ASSERT_EQUAL(m[i], expect[i]);
+        }
+    }
+    
+    {
+        int i = 0;
+        Matrix<int> m({
+            {0,1,2},
+            {3,4,5},
+            {6,7,8}
+        });
+        
+        ASSERT_EQUAL(m.size(), 9);
+        ASSERT_EQUAL(m.rows(), 3);
+        ASSERT_EQUAL(m.columns(), 3);
+        
+        m.removeRow(0);
+        
+        ASSERT_EQUAL(m.size(), 6);
+        ASSERT_EQUAL(m.rows(), 2);
+        ASSERT_EQUAL(m.columns(), 3);
+        
+        Matrix<int> expect({
+            {3,4,5},
+            {6,7,8}
+        });
+        
+        for(i = 0; i < m.size(); ++i) {
+            ASSERT_EQUAL(m[i], expect[i]);
+        }
+    }
+    
+    {
+        int i = 0;
+        Matrix<int> m({
+            {0,1, 2},
+            {3,4, 5},
+            {6,7, 8},
+            {9,10,11}
+        });
+        
+        ASSERT_EQUAL(m.size(), 12);
+        ASSERT_EQUAL(m.rows(), 4);
+        ASSERT_EQUAL(m.columns(), 3);
+        
+        m.removeRow(1,2);
+        
+        ASSERT_EQUAL(m.size(), 6);
+        ASSERT_EQUAL(m.rows(), 2);
+        ASSERT_EQUAL(m.columns(), 3);
+        
+        Matrix<int> expect({
+            {0,1, 2},
+            {9,10,11}
+        });
+        
+        for(i = 0; i < m.size(); ++i) {
+            ASSERT_EQUAL(m[i], expect[i]);
+        }
+        
+        m.removeRow(0,2);
+        
+        ASSERT_EQUAL(m.size(), 0);
+        ASSERT_EQUAL(m.rows(), 0);
+        ASSERT_EQUAL(m.columns(), 0);
+    }
+}
+
 void testMatrix()
 {
     testEmptyMatrix();
@@ -247,6 +548,8 @@ void testMatrix()
     testZeroMatrix();
     testMatrixIndexes();
     testRaowIterator();
+    testMatrixRemoveColumns();
+    testMatrixRemoveRows();
 }
 
 int main(int a, char**)

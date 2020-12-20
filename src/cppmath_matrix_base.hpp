@@ -18,11 +18,6 @@
 
 namespace cppmath {
 namespace matrix{
-
-struct MatrixPoint{
-    std::size_t row = 0;
-    std::size_t column = 0;
-};
     
 template <class MatrixT> struct MatrixTrait {
     typedef typename std::decay<typename MatrixT::value_type>::type value_type;

@@ -13,6 +13,7 @@
 #include <cassert>
 #include <type_traits>
 #include <vector>
+#include <iterator>
 #include <algorithm>
 #include <initializer_list>
 
@@ -70,14 +71,24 @@ protected:
     RowIterator(MatrixT* matrix, std::size_t index): BaseT(matrix), m_index(index){}
 };
 
+struct MatrixPoint{
+    std::size_t row = 0;
+    std::size_t column = 0;
+};
+
 template <typename T>
 class Matrix {
 public:
     typedef T           value_type;
+    typedef T&          reference;
+    typedef const T&    const_reference;
     
     using Iterator = RowIterator<Matrix>;
     using ConstIterator = RowIterator<const Matrix>;
     
+    /**
+            Constructors
+     */
     Matrix() = default;
     Matrix(const Matrix&) = default;
     Matrix(Matrix&&) = default;
@@ -105,59 +116,59 @@ public:
     {
         m_data.resize(rows * columns, val);
     }
+        
+    inline void assign(const T& val = T()) { m_data.assign(m_data.size(), val); }
     
-    void resize(std::size_t rows, std::size_t columns, const T& val = T()) {
-        m_columns = columns;
-        m_rows = rows;
-        m_data.resize(rows * columns, val);
-    }
+    /**
+            Element access
+     */
+    inline reference at(const MatrixPoint& point) { return m_data.at(point.row * m_columns + point.column); };
+    constexpr inline const_reference at(const MatrixPoint& point) const { return m_data.at(point.row * m_columns + point.column); };
+    inline reference at(std::size_t index) { return m_data.at(index); };
+    constexpr inline const_reference at(std::size_t index) const { return m_data.at(index); };
+    inline reference operator [] (const MatrixPoint& point) { return at(point); }
+    constexpr inline const_reference operator [] (const MatrixPoint& point) const { return at(point); }
+    inline reference operator [] (std::size_t index) { return at(index); }
+    constexpr inline const_reference operator [] (std::size_t index) const { return at(index); }
     
-    void reset() {
-        m_columns = 0;
-        m_rows = 0;
-        m_data.clear();
-    }
-    
-    inline void clear() {
-        set();
-    }
-    
-    inline void set(const T& val = T()) {
-        m_data.assign(m_data.size(), val);
-    }
-    
-    inline T& operator [] (const MatrixPoint& point) {
-        return m_data.at(point.row * m_columns + point.column);
-    }
-    
-    inline const T& operator [] (const MatrixPoint& point) const{
-        return m_data.at(point.row * m_columns + point.column);
-    }
-    
-    inline T& operator [] (std::size_t index) {
-        return m_data.at(index);
-    }
-    
-    inline const T& operator [] (std::size_t index) const {
-        return m_data.at(index);
-    }
-    
-    constexpr inline Iterator begin(){ return Iterator::begin(this); }
-    constexpr inline Iterator beginAt(const MatrixPoint& point){ return Iterator::beginAt(this, point.row, point.column); }
-    constexpr inline Iterator end(){ return Iterator::end(this); }
+    /**
+            Iterator
+     */
+    constexpr inline Iterator begin() { return Iterator::begin(this); }
+    constexpr inline Iterator beginAt(const MatrixPoint& point) { return Iterator::beginAt(this, point.row, point.column); }
+    constexpr inline Iterator beginAt(std::size_t row, std::size_t column) { return Iterator::beginAt(this, row, column); }
+    constexpr inline Iterator end() { return Iterator::end(this); }
     constexpr inline ConstIterator begin() const { return ConstIterator::begin(this); }
     constexpr inline ConstIterator beginAt(const MatrixPoint& point) const { return ConstIterator::beginAt(this, point.row, point.column); }
+    constexpr inline ConstIterator beginAt(std::size_t row, std::size_t column) const { return ConstIterator::beginAt(this, row, column); }
     constexpr inline ConstIterator end() const { return ConstIterator::end(this); }
     
-    std::size_t size()  const noexcept {return m_data.size();}
-    std::size_t rows() const noexcept {return m_rows;}
-    std::size_t columns() const noexcept {return m_columns;}
+    /**
+            Capacity
+     */
+    constexpr inline std::size_t size()  const noexcept { return m_data.size(); }
+    constexpr inline std::size_t rows() const noexcept { return m_rows; }
+    constexpr inline std::size_t columns() const noexcept { return m_columns; }
+    inline std::size_t capacity() const noexcept { return m_data.capacity(); }
+    constexpr inline void shrink_to_fit() { m_data.shrink_to_fit(); }
+    constexpr inline bool isEmpty() const { return size() == 0; }
     
-    constexpr inline bool isSquareMatrix() const {return columns() == rows() && columns() != 0; }
-    constexpr inline bool isColumnVector() const {return columns() == 1 && rows() > 0;}
-    constexpr inline bool isRowVector() const {return rows() == 1 && columns() > 0;}
-    constexpr inline bool isVector() const {return isColumnVector() || isRowVector();}
-    constexpr inline bool isEmpty() const {return size() == 0;}
+    /**
+            Helpers
+     */
+    constexpr inline bool isSquareMatrix() const { return columns() == rows() && columns() != 0; }
+    constexpr inline bool isColumnVector() const { return columns() == 1 && rows() > 0;}
+    constexpr inline bool isRowVector() const { return rows() == 1 && columns() > 0; }
+    constexpr inline bool isVector() const { return isColumnVector() || isRowVector(); }
+    
+    /**
+            Modifiers
+     */
+    void resize(std::size_t rows, std::size_t columns, const T& val = T());
+    void reset();
+    inline void clear() { assign(); }
+    void removeColumn(size_t column, size_t count = 1);
+    void removeRow(size_t row, size_t count = 1);
     
 private:
     std::vector<value_type> m_data;
@@ -165,12 +176,75 @@ private:
     std::size_t m_columns = 0;
 };
 
+template <typename T>
+void Matrix<T>::resize(std::size_t rows, std::size_t columns, const T& val)
+{
+    m_columns = columns;
+    m_rows = rows;
+    m_data.resize(rows * columns, val);
+}
+
+template <typename T>
+void Matrix<T>::reset()
+{
+    m_columns = 0;
+    m_rows = 0;
+    m_data.clear();
+}
+
+template <typename T>
+void Matrix<T>::removeColumn(size_t column, size_t count)
+{
+    assert(column + count <= m_columns);
     
-    constexpr size_t factorial(size_t n, size_t res = 1)
+    if(count >= m_columns)
     {
-        for(;n != 0; --n) res *= n;
-        return res;
+        reset();
+        return;
     }
+    
+    m_columns -= count;
+    const size_t newSize = m_columns * m_rows;
+    const size_t end = newSize - column;
+    
+    auto dstIt = std::next(m_data.begin(), column);
+    auto srcIt = dstIt;
+    
+    for(size_t i = 0 ; i < end; ++i, ++dstIt)
+    {
+        const size_t shift = count + (i)/m_columns * count;
+        srcIt = std::next(dstIt, shift);
+        
+        *dstIt = std::move(*srcIt);
+    }
+    
+    m_data.resize(newSize);
+}
+
+template <typename T>
+void Matrix<T>::removeRow(size_t row, size_t count)
+{
+    assert(row + count <= m_rows);
+    
+    const size_t size = m_data.size();
+    if(count >= m_rows)
+    {
+        reset();
+        return;
+    }
+    
+    auto start = m_data.begin() + row * m_columns;
+    auto end = std::next(start, count * m_columns);
+    
+    m_rows -= count;
+    m_data.erase(start, end);
+}
+    
+constexpr size_t factorial(size_t n, size_t res = 1)
+{
+    for(;n != 0; --n) res *= n;
+    return res;
+}
     
 } //namespace matrix
 } //namespace cppmath
