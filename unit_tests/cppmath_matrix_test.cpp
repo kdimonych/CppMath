@@ -95,7 +95,7 @@ void testMatrixResize(){
     ASSERT_EQUAL(m.isEmpty(), false);
     
     for(int i = 0; i < m.size(); ++i) {
-        ASSERT_EQUAL(m[i], 0);
+        ASSERT_EQUAL(m.at(i), 0);
     }
     
     const auto oldSize = m.size();
@@ -113,10 +113,10 @@ void testMatrixResize(){
     ASSERT_EQUAL(m.isEmpty(), false);
 
     for(i = 0; i < oldSize; ++i) {
-        ASSERT_EQUAL(m[i], 0);
+        ASSERT_EQUAL(m.at(i), 0);
     }
     for(; i < m.size(); ++i) {
-        ASSERT_EQUAL(m[i], defaultValue);
+        ASSERT_EQUAL(m.at(i), defaultValue);
     }
     
     const auto oldSize2 = m.size();
@@ -131,13 +131,13 @@ void testMatrixResize(){
     ASSERT_EQUAL(m.isRowVector(), false);
     ASSERT_EQUAL(m.isVector(), false);
     for(i = 0; i < oldSize; ++i) {
-        ASSERT_EQUAL(m[i], 0);
+        ASSERT_EQUAL(m.at(i), 0);
     }
     for(; i < oldSize2; ++i) {
-        ASSERT_EQUAL(m[i], defaultValue);
+        ASSERT_EQUAL(m.at(i), defaultValue);
     }
     for(; i < m.size(); ++i) {
-        ASSERT_EQUAL(m[i], defaultValue2);
+        ASSERT_EQUAL(m.at(i), defaultValue2);
     }
 }
 
@@ -150,7 +150,7 @@ void testZeroMatrix(){
     ASSERT_EQUAL(m.columns(), 4);
     
     for(i = 0; i < m.size(); ++i) {
-        ASSERT_EQUAL(m[i], 0);
+        ASSERT_EQUAL(m.at(i), 0);
     }
 }
 
@@ -172,9 +172,9 @@ void testMatrixIndexes(){
         ASSERT_EQUAL(mp.row, rowIndex);
         ASSERT_EQUAL(mp.column, columnIndex);
         
-        m[i] = i;
+        m.at(i) = i;
         
-        ASSERT_EQUAL(m[i], m[mp]);
+        ASSERT_EQUAL(m.at(i), m.at(mp));
         ASSERT_EQUAL(i, m[mp]);
         
         ASSERT_EQUAL(std::distance(m.begin(), it), i);
@@ -197,12 +197,12 @@ void testMatrixSetFunc(){
     m.assign(val);
     
     for(i = 0; i < m.size(); ++i) {
-        ASSERT_EQUAL(m[i], val);
+        ASSERT_EQUAL(m.at(i), val);
     }
     
     m.clear();
     for(i = 0; i < m.size(); ++i) {
-        ASSERT_EQUAL(m[i], 0);
+        ASSERT_EQUAL(m.at(i), 0);
     }
 }
 
@@ -216,7 +216,7 @@ void testMatrixInit(){
         ASSERT_EQUAL(m.columns(), 3);
         
         for(i = 0; i < m.size(); ++i) {
-            ASSERT_EQUAL(m[i], i);
+            ASSERT_EQUAL(m.at(i), i);
         }
     }
     
@@ -233,7 +233,7 @@ void testMatrixInit(){
 
         int expect[6] = {0,1,2,5,4,3};
         for(i = 0; i < m.size(); ++i) {
-            ASSERT_EQUAL(m[i], expect[i]);
+            ASSERT_EQUAL(m.at(i), expect[i]);
         }
     }
 }
@@ -264,7 +264,7 @@ void testMatrixRemoveColumns(){
         });
         
         for(i = 0; i < m.size(); ++i) {
-            ASSERT_EQUAL(m[i], expect[i]);
+            ASSERT_EQUAL(m.at(i), expect.at(i));
         }
     }
     
@@ -293,7 +293,7 @@ void testMatrixRemoveColumns(){
         });
         
         for(i = 0; i < m.size(); ++i) {
-            ASSERT_EQUAL(m[i], expect[i]);
+            ASSERT_EQUAL(m.at(i), expect.at(i));
         }
     }
     
@@ -322,7 +322,7 @@ void testMatrixRemoveColumns(){
         });
         
         for(i = 0; i < m.size(); ++i) {
-            ASSERT_EQUAL(m[i], expect[i]);
+            ASSERT_EQUAL(m.at(i), expect.at(i));
         }
     }
     
@@ -351,7 +351,7 @@ void testMatrixRemoveColumns(){
         });
         
         for(i = 0; i < m.size(); ++i) {
-            ASSERT_EQUAL(m[i], expect[i]);
+            ASSERT_EQUAL(m.at(i), expect.at(i));
         }
     }
     
@@ -380,7 +380,7 @@ void testMatrixRemoveColumns(){
         });
         
         for(i = 0; i < m.size(); ++i) {
-            ASSERT_EQUAL(m[i], expect[i]);
+            ASSERT_EQUAL(m.at(i), expect.at(i));
         }
         
         m.removeColumn(0,2);
@@ -416,7 +416,7 @@ void testMatrixRemoveRows(){
         });
         
         for(i = 0; i < m.size(); ++i) {
-            ASSERT_EQUAL(m[i], expect[i]);
+            ASSERT_EQUAL(m.at(i), expect.at(i));
         }
     }
     
@@ -443,7 +443,7 @@ void testMatrixRemoveRows(){
         });
         
         for(i = 0; i < m.size(); ++i) {
-            ASSERT_EQUAL(m[i], expect[i]);
+            ASSERT_EQUAL(m.at(i), expect.at(i));
         }
     }
     
@@ -471,7 +471,7 @@ void testMatrixRemoveRows(){
         });
         
         for(i = 0; i < m.size(); ++i) {
-            ASSERT_EQUAL(m[i], expect[i]);
+            ASSERT_EQUAL(m.at(i), expect.at(i));
         }
     }
     
@@ -499,7 +499,7 @@ void testMatrixRemoveRows(){
         });
         
         for(i = 0; i < m.size(); ++i) {
-            ASSERT_EQUAL(m[i], expect[i]);
+            ASSERT_EQUAL(m.at(i), expect.at(i));
         }
     }
     
@@ -528,7 +528,7 @@ void testMatrixRemoveRows(){
         });
         
         for(i = 0; i < m.size(); ++i) {
-            ASSERT_EQUAL(m[i], expect[i]);
+            ASSERT_EQUAL(m.at(i), expect.at(i));
         }
         
         m.removeRow(0,2);
@@ -539,8 +539,74 @@ void testMatrixRemoveRows(){
     }
 }
 
+void testMatrixRow( ) {
+    Matrix<int> m({
+        {0,1, 2},
+        {3,4, 5},
+        {6,7, 8},
+        {9,10,11}
+    });
+
+    for( int i = 0; i < m.rows(); ++i )
+    {
+        for(int j = 0; j < m.columns(); ++j)
+        {
+            ASSERT_EQUAL( m[i][j], i * m.columns() + j );
+        }
+    }
+}
+
+//void iterator_test()
+//{
+//    Matrix<int> m({
+//        {0,1, 2},
+//        {3,4, 5},
+//        {6,7, 8},
+//        {9,10,11}
+//    });
+//    const Matrix<int>& cm = m;
+//
+//    auto result = cm.begin( ) == m.begin();
+//    ASSERT_EQUAL( result, true );
+//    result = cm.begin( ) < m.begin();
+//    ASSERT_EQUAL( result, true );
+//
+//    Matrix<int>::ConstIterator cit = m.begin();
+//    result = cit == m.begin();
+//    ASSERT_EQUAL( result, true );
+//}
+template <class T>
+class A: public T {
+    
+};
+
+class IntPIt{
+public:
+    typedef  int             value_type;
+    typedef  int&              reference;
+    typedef  int*                pointer;
+    typedef std::ptrdiff_t   difference_type;
+    typedef std::bidirectional_iterator_tag                                 iterator_category;
+};
+
 void testMatrix()
 {
+    class B {
+    public:
+        
+        void p() const {
+            std::cout << "const" << std::endl;
+        }
+        void p() {
+            std::cout << "not const" << std::endl;
+        }
+    };
+    A<const B> AcB;
+    AcB.p();
+    
+    MatrixIteratorWrap<IntPIt> it;
+    //class B: public class const A {};
+    
     testEmptyMatrix();
     testMatrixInit();
     testMatrixSetFunc();
@@ -550,6 +616,8 @@ void testMatrix()
     testRaowIterator();
     testMatrixRemoveColumns();
     testMatrixRemoveRows();
+    testMatrixRow();
+    //iterator_test();
 }
 
 int main(int a, char**)

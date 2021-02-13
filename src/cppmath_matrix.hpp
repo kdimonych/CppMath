@@ -16,6 +16,7 @@
 #include <iterator>
 #include <algorithm>
 #include <initializer_list>
+#include <utility>
 
 #include "cppmath_matrix_base.hpp"
 #include "cppmath_functions.hpp"
@@ -51,6 +52,12 @@ public:
         return RowIterator(matrix, row * matrix->columns() + column);
     };
     
+    constexpr static inline RowIterator beginAt(MatrixT* matrix, std::size_t index){
+        assert(matrix);
+        assert(index <= matrix->size());
+        return RowIterator(matrix, index);
+    };
+    
     inline std::size_t index() const noexcept {return m_index;};
     inline std::size_t column() const {
         assert(this->m_matrix);
@@ -60,7 +67,6 @@ public:
         assert(this->m_matrix);
         return this->m_matrix->columns() != 0 ? m_index / this->m_matrix->columns() : 0;
     }
-    
     
 protected:
     friend BaseT;
@@ -85,6 +91,35 @@ public:
     
     using Iterator = RowIterator<Matrix>;
     using ConstIterator = RowIterator<const Matrix>;
+    
+    template<class IteratorT>
+    class Row {
+    public:
+        typedef typename IteratorT::value_type   value_type;
+        typedef typename IteratorT::reference    reference;
+        
+        Row( const Row& ) = default;
+        Row( Row&& ) = default;
+        Row& operator = ( const Row& ) = default;
+        Row& operator = ( Row&& ) = default;
+        
+        inline reference at( std::size_t index ) const { return *( m_begin + index ); };
+        inline reference operator [] (std::size_t index) const { return at(index); }
+        
+        bool operator == (const Row& other) const {
+            return m_begin == other.m_begin || std::equal( m_begin, m_end, other.m_begin, other.m_end );
+        }
+        
+        constexpr inline size_t size( ) const { return std::distance(m_begin, m_end); }
+        
+    protected:
+        friend class Matrix;
+        template< class _IteratorT >
+        Row ( _IteratorT&& begin, _IteratorT&& end ) : m_begin( std::forward<IteratorT>(begin) ),  m_end( std::forward<IteratorT>(end) ) {}
+        
+        IteratorT m_begin;
+        IteratorT m_end;
+    };
     
     /**
             Constructors
@@ -128,8 +163,14 @@ public:
     constexpr inline const_reference at(std::size_t index) const { return m_data.at(index); };
     inline reference operator [] (const MatrixPoint& point) { return at(point); }
     constexpr inline const_reference operator [] (const MatrixPoint& point) const { return at(point); }
-    inline reference operator [] (std::size_t index) { return at(index); }
-    constexpr inline const_reference operator [] (std::size_t index) const { return at(index); }
+    inline Row<Iterator> operator [] ( std::size_t index ) {
+        return Row<Iterator>( Iterator::beginAt( this, index * this -> columns() ),
+                             Iterator::beginAt( this, ( index + 1 ) * this -> columns() ) );
+    }
+    constexpr inline Row<ConstIterator> operator [] (std::size_t index) const {
+        return Row<ConstIterator>( ConstIterator::beginAt( this, index * this -> columns() ),
+                             ConstIterator::beginAt( this, ( index + 1 ) * this -> columns() ) );
+    }
     
     /**
             Iterator
